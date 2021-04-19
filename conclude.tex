@@ -1,0 +1,31 @@
+\chapter{\uppercase{Conclusion}}
+
+Rapid NF migration and accompanying path changes can be critical for
+alleviating problems in a network, and doing so in a way that ensures
+that all traffic is processed by its required waypoints is important
+to avoid violations of network policy. Realizing this requires both efficient network forwarding-state update and safe NF migration. In this dissertation, we have proposed suffix causal consistency (SCC) as an interpretation of causal consistency for network forwarding-state updates in an SDN network.  SCC ensures that a packet will be matched only to rules at least as recent as
+those to which it has been matched previously, thus ensuring that a
+packet will exit the network on a suffix of the most recent path's
+rules to which it was matched.  Our algorithm implements this property
+without updating switches unnecessarily.  We showed that SCC
+implements bounded looping and black-hole freedom during updates and
+formally verified that our algorithm achieves SCC as well as these
+additional properties.  Through empirical tests with implementations
+in P4 and Open vSwitch, and using real traffic traces from Facebook,
+we showed that our algorithm supports faster rule deployment than CU,
+TSU and COCONUT, leading to fewer dropped packets during updates.  SCC also requires the retention of fewer additional rules during the update, and its rule generation scales across a wide range of topologies.
+
+
+To coordinate NF migration with the routing policy update, we have
+presented an algorithm that accelerates the deployment of these
+changes in SDN networks over current best solutions.  Our design
+accomplishes this through a careful interleaving of NF migrations with
+path changes, and ensures the correctness of traffic processing provided
+that the route-update protocol on which we build ensures a property
+that we call \textit{relaxed waypoint correctness}.  We provided a
+route-update protocol designed to achieve this property, without
+enforcing other properties typically associated with consistent-update
+protocols.  We showed the sufficiency of this property through model
+checking, and then demonstrated the performance improvements achieved by our algorithm in empirical comparisons to state-of-the-art.
+
+We believe our work paves the way for future research in SDN and network function migration. For example, is it feasible to balance the workload of each network function by choosing where NFs should be migrated to and which path traffic should be rerouted through?  Is it possible to design a one big switch framework that can automatically and consistently manage state for programmable switches? We leave these open issues for future work. 

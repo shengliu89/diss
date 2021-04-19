@@ -1,0 +1,206 @@
+\chapter{\uppercase{Background and Related Work}}
+\label{chap:related}
+
+In this chapter, we describe background on software-defined networking and network function migration -- two fields included by this dissertation. We also summarize closely related works on consistent network updates and model checking.
+
+
+\section{Software-defined Networking}
+\label{sec:sdn}
+%Tradition network is hard and complex to manage due to the following reasons. First, to configure network device to enforce high-level network policies, network operators have to leverage vendor-specific low-level commands. This operation is performed separately on each device and thus very time-consuming and error-prone. Besides, network environments have to endure frequent changes of traffic volume and topology. It is not feasible to use this method to efficiently achieve network reconfiguration. Second, traditional network device integrates the control plane with the data plane, reducing programmability and flexibility. It hinders network operators implementing novel network management protocols. 
+
+Software-defined networking emerged to facilitate network management by centralizing and simplifying network control. It provides a new network paradigm by decoupling the network's control plane and the data plane. Specifically, SDN uses a logically centralized controller to maintain the network information base and manage underlying routers and switches. Routers and switches provide the controller a well-defined programming interface (e.g. OpenFlow{~\cite{OpenFlowSpec}}) to manipulate packet-forwarding logic. Each switch maintains one or more flow-entry tables which store packet-handling rules matching specific traffic and performing certain actions (e.g., dropping, forwarding). These rules can be updated by the controller such that switches can perform certain network functions (e.g., routing, load balancing, filtering traffic). The separation between the specification of network policies and their implementation in hardware devices offers flexibility and programmability for simplifying network management. Therefore, SDN significantly saves time and effort for network operators to reconfigure network equipment. Besides, it also shortens the development cycle to implement novel network management protocols.
+
+
+\subsection{SDN Applications}
+\label{sec:sdn:apps}
+
+SDN has been widely used to implement network applications and optimize resource utilization. The flexibility of SDN facilitates the deployment of a variety of applications for traffic routing{~\cite{fibbing, espresso}}, network measurement{~\cite{univmon, opensketch}} and middlebox deployment{~\cite{simple, slick}}. Fibbing{~\cite{fibbing}} offers central control over distributed routing protocols, such as OSPF, by introducing fake links and nodes. Google uses Espresso{~\cite{espresso}}, an Internet peering edge routing infrastructure using SDN, to achieve fine-grained BGP-compliant bandwidth management. Besides the routing control, SDN can also be used to facilitate network measurement. OpenSketch{~\cite{opensketch}} separates the control plane from the measurement data plane to efficiently support a wide variety of measurement tasks. UnivMon{~\cite{univmon}} offers both high accuracy and generality for flow monitoring. Moreover, SDN provides an alternative way to enforce middlebox deployment. Simple{~\cite{simple}} uses SDN to steer traffic through a sequence of middleboxes while balancing the load across middleboxes. Slick{~\cite{slick}} handles both the placement of network functions and traffic routing through the elements.
+
+
+SDN can also be leveraged for network resource management since it simplifies the network control. Google uses SDN to deploy its backbone WAN named B4{~\cite{b4}} so that it can leverage centralized traffic engineering to maximize link utilization. ElasticTree{~\cite{elastic}} utilizes a centralized power manager to handle traffic loads and save up energy cost dynamically. SWAN{~\cite{swan}} achieves high bandwidth by applying frequent congestion-free network updates. A more comprehensive survey on SDN can be found in this paper{~\cite{sdnsurvey}}.
+
+
+
+
+%FRESCO~/cite{fresco} to implement, share, and compose together, many different security detection and mitigation modules such as scan detectors.
+
+\subsection{Programmable Switches}
+\label{sec:sdn:progsw}
+In recent years, a new high-level packet-processing language called P4~\cite{P4Switch} has been developed to offer flexibility for programmable switches in the SDN data plane. Specifically, programmers can customize the forwarding logic of switch hardware by extracting specific packet headers, defining match and action formats for tables, and specifying the order in which these tables process packets. Programmable switches offer high programmability as well as high packet processing rates. A wide interest has arisen, and much effort has been made in both industries (e.g., Barefoot Networks' Tofino~\cite{tofino}) and academia (e.g., PISCES~\cite{PISCES}).  Barefoot Networks' hardware switch Tofino supports P4 language and can achieve up to $12.8$ Tb/s throughput. PISCES is a software switch derived from OpenVswitch{~\cite{ovs}}, that is customized for the P4 language.
+
+
+The flexibility and programmability of P4 significantly speed up the implementation and deployment of new protocols and algorithms. Hula{~\cite{hula}} uses programmable switches to implement a load balancing mechanism. Contra{~\cite{contra}} achieves performance-aware routing based on real-time link conditions and allows network operators to specify user-defined performance objectives. NetCache{~\cite{netcache}} leverages switches to cache frequently-accessed items and balance loads across key-value stores. Since it is convenient to define new packet headers with P4 language, in this dissertation, we use P4 language to implement our SCC algorithm in {\chapref{chap:scc}}.
+
+
+\section{Consistent Network Updates}
+\label{sec:update}
+
+Networks require fast and efficient updates for various reasons, ranging from planned maintenance to unexpected failures.  Meanwhile, network operators need to establish certain correctness conditions, such as black hole freedom or enforcing complex security policies, to achieve successful and safe network operation. As modern networks are changing continually, it is critical to maintaining these conditions even during transitions. Therefore, network systems require consistent updates that preserve certain properties during transitions between two operator-specified configurations. Consistent network update in SDN networks has recently received considerable attention (e.g.,~\cite{CU, dionysus, tsu, SynNetworkUpdate, timeflip,
+  timedcu, incrementalcu, DecentralizedCU, ocusdn, ccg}). Most
+approaches provide either strong consistency in the sense that packets
+traverse either the old path or the new path (but not a mix)~\cite{CU,
+ timedcu, incrementalcu} or ensure specific properties
+(e.g., loop freedom, congestion freedom) via weaker, transient
+consistency~\cite{tsu, gnu, dionysus, lfupdate, flip, dlb, swan,
+zupdate}.  
+
+  
+The earliest work of the former class is Consistent Update
+(CU)~\cite{CU}, which uses a two-phase commit to apply rule updates
+atomically across the network and requires each switch to temporally
+maintain both old rules and new rules during the update.  In addition,
+a new rule configuration cannot be applied to packets until it is
+confirmed as having reached all switches. Tal \textit{et al.}~\cite{timedcu} leverage synchronized clocks among the controller and switches to implement time-triggered Consistent Update and thus speeding up the process. These approaches can guarantee that traffic is processed by either an old or a new configuration, but not a mix of the two. However, though CU is capable of being used with any configuration, it has significant rule-space overhead by storing both old and new rules at switches. To reduce memory overhead, Naga \textit{et al.}~\cite{incrementalcu} propose performing a two-phase commit in multiple steps to update the network incrementally. 
+
+Another class of solutions performs network updates incrementally and focuses on specific properties via weaker consistency. An example is Transiently Secure Network Updates
+(TSU)~\cite{tsu}, which provides loop freedom and waypoint enforcement properties, implemented by scheduling updates to the network in multiple steps.
+Only a subset of switches are updated in each step, and the next step must wait for the completion of the previous one. Specifically, TSU computes the optimal update schedules using mixed-integer programming. Klaus-Tycho \textit{et al.}~\cite{lfupdate} propose an algorithm to perform network updates in minimal steps and meanwhile achieving loop-freedom property. zUpdate~\cite{zupdate} and SWAN~\cite{swan} perform congestion-free network updates to maximize link utilization. Klaus-Tycho \textit{et al.}~\cite{dlb} discuss the tradeoff between various consistency properties and the speed to update the network. Also, some works~\cite{dionysus, ccg} allow network operators to customize correctness properties that should be satisfied during the transitions. Dionysus~\cite{dionysus} proposes an algorithm to generate a dependency graph among updates for a specific property and compute an update schedule to increase the update speed. Similar to Dionysus, CCG~\cite{ccg} supports general network properties and can be applied to applications with wildcarded rules.
+
+ 
+We compare our proposed network-update algorithm SCC empirically to CU and TSU in \secref{sec:eval}, but the
+lessons we draw from that comparison, we believe, apply more broadly
+to the classes of solutions they represent: approaches (like CU) that
+ensure that packets traverse either the old path or the new path (but
+not a mix) come at a significantly greater network update delay and
+transient rule-storage overhead than our approach, and those that
+ensure specific network properties via weaker transient consistency
+(like TSU) tend to scope their targeted properties narrowly and still
+may incur significantly greater network update delay than our
+approach, due to their multi-stage strategies.  As we will show, our
+approach incurs low delay by avoiding multi-step deployment strategies
+and implements a property, namely \textit{suffix causal consistency},
+that implies a broad range of useful properties during routing
+changes.
+
+\iffalse
+Broadly
+speaking, these approaches either suffer from severe performance
+penalties (large update delay and memory cost) or cannot provide
+enough consistency to safely update the network (congestion freedom
+does not imply, say, waypoint enforcement).  For example, Consistent
+Update (CU)~\cite{CU}---probably the most closely related work to our
+own---uses two-phase commit to apply rule updates atomically across
+the network, and requires each switch to temporally maintain both old
+rules and new rules during the update.  In addition, a new rule
+configuration cannot be applied to packets until it is confirmed as
+having reached all switches. Also, Transiently Secure Network Updates (TSU) 
+~\cite{tsu}, \hl{an approach to provide certain properties (i.e. loop freedom 
+and waypoint) via weaker consistency, schedules the network updates in 
+multiple steps. In each round, only a subset of switches are updated and 
+the operations of the next step must wait for the completion of the previous one. 
+Therefore, these approaches suffer a large delay and may not be able to recover 
+the communication in time in front of the network failures.  In contrast, 
+our algorithm accelerates the update process by allowing a packet to transition 
+from the old path to the new path and ensures the consistency by temporarily 
+buffering on-the-fly packets. In doing so, we reduce the delay to update the
+network and the number of rules that each switch must maintain during
+updates, while still ensuring useful properties (e.g., bounded
+looping, black-hole freedom)}.
+\fi
+
+
+\section{Causal Consistency}
+\label{sec:causal}
+Suffix causal consistency is inspired by
+causal consistency~\cite{causal}, a consistency model for
+shared-memory systems.  Informally, a system is causally consistent if
+reads return values consistent with any reads and writes that could
+have influenced them (in the sense of Lamport's \textit{potential
+  causality} relation~\cite{LamportClock}).  Causal consistency is
+widely used to ensure consistency and high availability of data
+objects with minimal delay across a wide-area network~\cite{cops,
+  eiger, bolton}. For example, COPS~\cite{cops} implements a scalable distributed key-value wide-area system that performs read and write operations in a local data center in a linearizable way and replicates data among datacenters satisfying causal consistency. Specifically, COPS explicitly tracks the causal dependencies among keys and checks whether these dependencies are satisfied before executing the write operation to a local datacenter.
+Similar to COPS, Eiger~\cite{eiger} also uses causal consistency to provide a scalable, consistent geo-replicated storage system. However, different from COPS that tracks the dependencies on versions of keys, Eiger maintains dependencies on operations. Peter \textit{et al.}~\cite{bolton} develop a bolt-on framework to achieve causal consistency based on eventually consistent stores such that safety and liveness concerns can be separated. 
+Our work adapts the causal consistency property to network routing, introducing improvements to reduce the extent and hence
+delays associated with network updates.
+
+Due to its shared basis in causal consistency, in \secref{sec:eval}
+we will also empirically compare our SCC algorithm to COCONUT~\cite{COCONUT}, which seeks
+to enable seamless scaling of logical network elements to multiple
+physical replicas.  The core technical problem that COCONUT tackles are
+that naive replication can result in incorrect behavior by a logical
+component during routing updates if one physical replica applies an
+old policy to packets that depend causally on packets to which another
+replica applied a new policy.  COCONUT thus leverages (compressed)
+vector timestamps~\cite{fidge88,mattern88} in packets, with one
+component per logical rule undergoing an update, to signal to physical
+replicas the rule version that other replicas previously applied to
+flows on which this packet causally depends, enabling them to apply an
+equally current version.  COCONUT thus ensures that each replicated
+logical element respects causal relationships between flows (though
+not across distinct logical elements).  In contrast, our SCC algorithm does not focus on
+causal relationships between flows, but instead ensures that each flow
+``reads'' (is matched to) rules in causal order across the network
+elements, seamlessly transitioning it from old routing policy to new.
+Despite the somewhat different goals of COCONUT, we will coerce it to
+implement our goals in \secref{sec:eval} and compare SCC to it
+empirically, as another point in the design space.
+
+
+
+\section{Network Functions Migration}
+\label{sec:nfv}
+Stateful network functions are widely used in modern networks for network monitoring (e.g., PRADS~\cite{prads}), intrusion detection (e.g., Snort~\cite{snort}) and load balancing (e.g., HAProxy~\cite{HAProxy}). These NFs maintain state for ongoing connections, e.g., TCP connection state or number of transmitted bytes per host, and update the state when processing packets. Network function virtualization (NFV)~\cite{nfv} enables a network controller to spin up middleboxes in virtual machines/containers in response to real-time traffic volume and place these VMs/containers at arbitrary positions in the network. Due to its high flexibility and elasticity, many companies have embraced network function virtualization. Microsoft Azure~\cite{azure} and Amazon AWS~\cite{aws} support NFV on their platform to minimize operational complexity. VMware vCloud NFV~\cite{vmware} and Cisco NFVI~\cite{cisco} provide NFV service to customers and help them deploy new services faster.
+
+
+Though NFV offers elasticity for middlebox deployment, ensuring the correct state for NFs collectively is difficult. Specifically, it requires identifying the states that should be migrated, migrating network function to a new location along with related states, and redistributing affected traffic. 
+
+A lot of works ~\cite{stateAlyzr, swingstate, vnids} have been done to identify states using program analysis automatically. stateAlyzr~\cite{stateAlyzr} leverages data and control-flow analysis to identify states that need to be migrated to ensure consistency when scaling network functions. vNIDS~\cite{vnids} uses static program analysis for identification of shared states to achieve safe virtualization of Network Intrusion Detection Systems. SwingState~\cite{swingstate} analyzes the P4 program that implements specific network functions in the SDN data plane and figures out the states that require migration. It then modifies the P4 code to enable the live migration of these states. In this dissertation, we focus on how to migrate network functions and how to coordinate NF migration with traffic redistribution.
+
+Network function (NF) migration using software-defined networking
+(SDN) requires careful coordination between efficient routing-policy updates and NF migration. To ensure that all packets
+are processed correctly during NF migration, all existing
+works~\cite{swingstate, opennf, split, transfer} update network
+forwarding state strictly after NF migration is done.  While some
+approaches~\cite{split, opennf} use a centralized controller to
+reroute affected traffic from the old to new NF position, other
+works~\cite{swingstate, transfer} tunnel traffic directly to the new
+NF position to reduce latency. Examples of the former class are
+OpenNF~\cite{opennf} and Split/Merge~\cite{split}. OpenNF uses a centralized SDN controller to
+coordinate NF migration with packet redistribution. The affected
+incoming packets arriving at old NF positions are buffered at the
+controller during NF migration to avoid packet loss. Split/Merge leverages SDN to split per-flow states among 
+VM replicas and redistribute traffic among them.
+An example of the latter class is SwingState~\cite{swingstate}. SwingState creates a tunnel
+between the old position and the new position of each NF. NF states are prepended
+to packets arriving at the old location and are then forwarded to the new
+location. Asron \textit{et al.}~\cite{transfer} leverage virtual Ethernet interfaces to bridge old NF instance and new instance for packet redistribution. To reduce service downtime, they do not halt the operation of an old instance during migration. Old instance mirrors packets to the new instance such that the new instance maintains up-to-date states.
+All of these works change network routing policy after NF
+migration is finished, which slows down traffic redistribution.
+
+
+Numerous works focus on virtual machine (VM) migration~\cite{livevm,
+  lime, Remus, Xenflow}. Some works~\cite{livevm, Remus} clone VM
+instances in their entirety. Live migration~\cite{livevm} copies a
+snapshot of VM memory to the new location. To minimize the VM
+downtime, write operations at the old position are intercepted and
+copied to the new location. Remus~\cite{Remus} clones memory and disk
+states across multiple VM replicas and uses checkpointing to provide
+fault tolerance. These works do not coordinate VM migration with the
+change of routing policies.  Other works~\cite{lime, Xenflow} propose
+to migrate VMs along with the underlying virtual network.
+XenFlow~\cite{Xenflow} migrates Xen VMs and the virtual network using
+OpenFlow switches to minimize performance disruption. LIME~\cite{lime}
+migrates a collection of VMs and virtual switches as an ensemble to
+provide transparency to the applications, though with the risk of
+packet loss while VMs or switches are temporarily frozen.
+
+
+
+In this dissertation, NFs move along with their states. Some
+works~\cite{streamnf, stateless, elastic}, which are orthogonal to ours, maintain an external data
+store such that states do not need to migrate during NF
+migration. Some papers~\cite{stateless} propose systems that keep all NF states in a
+standalone centralized store, while other works~\cite{streamnf,
+  elastic} maintain states both locally and remotely for performance.
+ StatelessNF~\cite{stateless} breaks the tight coupling between the processing of network functions and state management by placing all states in a remote data store. However, customized techniques, e.g., RAMcloud~\cite{ramcloud} and Infiniband~\cite{infiniband}, need to be used to improve database and network performance. StreamNF~\cite{streamnf} provides state management among chain-wide NFs by classifying states into per-flow state and cross-flow state.  A per-flow state can only be updated by a single instance, and cross-flow state objects are shared among multiple instances. Cross-flow state objects can be cached locally for performance improvement but require synchronization with remote data store upon local write operations. S6~\cite{elastic} leverages distributed shared object (DSO) to distribute and share states among all NFs.
+ 
+\section{Correctness Checking}
+\label{sec:check}
+A lot of works~\cite{netplumber, hsa, sdnracer, nice, atpg, veriflow} utilize automatic techniques, such as model checking, to find bugs in network applications, detect network anomaly or verify the correctness of network property. These works can be classified into two kinds, online and offline checking. The difference is that online checking trouble-shoots the network system at runtime by observing the change of network state when packets traverse the network. Examples of offline checking SDN are SDNRacer~\cite{sdnracer} and HSA~\cite{hsa}. SDNRacer detects concurrency issues in the data plane by defining the happens-before relation for network events. HSA developes a framework, called \textit{header space analysis}, to statically check the correctness of network configurations in the data plane. These works either use a simplified switch model for efficiency or can only be used for small-scale network settings. Examples of online checking SDN are NetPlumber~\cite{netplumber}, VeriFlow~\cite{veriflow} and ATPG~\cite{atpg}. NetPlumber and VeriFlow verify the network-wide invariants in SDN at runtime by observing OpenFlow messages. ATPG injects test packets into the data plane to monitor the router configurations. None of these verification tools can be directly used to verify the correctness of our algorithm since modeling our algorithm needs to take into account additional factors such as unknown delays for switch updates to occur and diverse behavior of network protocols. In this dissertation, we use model checking to model these factors and verify the correctness of our algorithms.
+
+Model checking~\cite{modelcheck} emerged in the early 1980s to prove concurrent system correctness. A model-checking tool allows users to describe a system (called model) and a property (called specification) this system is expected to satisfy. The tool automatically verifies if this property is satisfied by searching for a counterexample that violates the property. To reduce state space that the model checking tools need to explore, techniques, such as symbolic execution~\cite{symbolic}, are used. Recently, model checking has been utilized to verify network-wide properties for SDN. NICE~\cite{nice} uses model checking in combination with symbolic execution to find bugs in OpenFlow controller applications. FLOVER~\cite{mcopenflow} model checks if the rules generated by an SDN app satisfy specific security policies. FlowChecker~\cite{flowchecker} checks misconfigurations for scenarios where multiple users share the same network and deploy their rules separately. In \chapref{chap:modelchecking}, we elaborate on how to model our system and demonstrate the correctness of our algorithms using model checking.
+
+
+
+  

@@ -1,0 +1,27 @@
+\abstract{
+
+Network function (NF) migration alongside (and possibly because of)
+routing policy updates is a delicate task, making it difficult to
+ensure that all traffic is processed by its required network
+functions, in order. Achieving traffic redistribution while
+ensuring correct processing of all packets requires an efficient network 
+forwarding-state update and careful coordination between routing-policy 
+change and NF migration. To achieve consistent network updates, in this dissertation,
+we propose a new method that is inspired by \textit{causal consistency}, a consistency model for
+shared-memory systems.  We propose and analyze a property called \textit{suffix causal consistency} (SCC) as an interpretation of causal consistency for rule updates in an SDN network. We design an algorithm implementing this property and formally verify the correctness of this algorithm using model checking. Our evaluation results show that SCC
+provides greater efficiency than competing consistent-update
+alternatives while offering consistency that is strong enough to
+ensure high-level routing properties (e.g., black-hole freedom).
+
+To coordinate routing-policy update with NF migration, we propose a design called \sysname for
+interleaving these tasks to achieve more efficient
+completion of both while ensuring complete processing of traffic by
+the required sequences of NFs. Our technique works with any route-update protocol that implements a property we call \textit{relaxed waypoint
+correctness}, which includes our SCC algorithm and many consistent-update protocols.
+We also provide a route-update protocol that is customized to
+achieve relaxed waypoint correctness without conforming to
+conventional ``consistent update'' semantics, as typically defined for
+such protocols.  We confirm the sufficiency of relaxed waypoint
+correctness using model checking, and the implementation demonstrates the efficiency and efficacy of \sysname.
+
+}

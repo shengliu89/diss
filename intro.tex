@@ -1,0 +1,75 @@
+\chapter{\uppercase{Introduction}}
+\label{chap:intro}
+
+Network functions (NFs), or middleboxes, are a staple of modern network infrastructures. These middleboxes play a critical role in the network and can perform a variety of functions on packets, such as access control, load balancing, and intrusion detection. For example, network intrusion detection/prevention systems (NIDS/NIPS) enjoy widespread use and are central to supporting secure and efficient operations of the network. 
+Network service providers traditionally deploy these NFs using proprietary physical devices and maintain strict chaining or orders that must be reflected in the position of NFs.
+As modern networks require ever-increasing flexibility and scalability for network function deployment, the traditional dedicated hardware equipment suffers from significant reconfiguration overhead and lacks the elasticity for service providers to provide dynamic and high-quality services. To meet the required elasticity, network function virtualization (NFV) has emerged to replace traditional dedicated hardware devices with software applications running in virtual machines (e.g., VMware workstation) or containers (e.g., docker).
+
+The main idea of NFV is decoupling of the physical network device from the network services that run on it, such that these services can be realized on commodity hardware using virtualization. This enables a specific chain of services to be decomposed into multiple virtual network functions, which can be packaged as software running on one or more industry-standard servers located in data centers or at the network edge. As a result, service providers can deliver these services on demand without purchasing new hardware. As the progression of server virtualization and network virtualization, NFV is rapidly emerging and creating a brand new market. The global network function virtualization market size is forecasted to grow from $12.9$ billion dollars in 2019 to $36.3$ billion dollars by 2024 ~\cite{market}. Many companies have launched their products to provide NFV services (e.g., VMware vCloud NFV~\cite{vmware}, Cisco NFVI~\cite{cisco}) or leverage NFV techniques on their platforms (e.g., Microsoft Azure~\cite{azure}, Amazon AWS~\cite{aws}).
+
+A significant benefit of NFV is that it can dynamically scale-out a particular virtualized network function by increasing the number of VM/container instances in response to the real-time traffic load. Realizing such elasticity requires moving the network function to a new position with corresponding states and redistributing traffic among multiple NF instances.
+The speed of network update and NF migration is crucial because it determines the agility of the network control. If the network adapts to traffic volume changes, a slow update can result in a long period during which network functions are overloaded or underutilized. It further leads to degraded network performance or resource waste. Therefore, the effectiveness of NFV depends on how fast the traffic redistribution and NF migration can be achieved.
+
+Efficient traffic reassignment needs rapidly determining new routing policies based on network topology and updating forwarding rules on switches to route traffic through the desired sequence of network functions correctly. 
+%Unfortunately, traditional network routing protocols cannot offer the required flexibility and efficiency because they are typically hard-coded into hardware switches. 
+However, achieving fast network updates is challenging in the traditional network. First, it is complicated and hard to reconfigure network devices to enforce new routing policies because network operators have to leverage vendor-specific low-level commands manually. This operation is performed separately on each device and thus can be very time-consuming and error-prone. Second, network environments have to endure frequent changes in both traffic volume and topology. Traditional network lacks the elasticity and programmability to adapt to network changes.
+
+Software-defined networking (SDN) provides a promising alternative for deploying network updates with improved network management and network programmability. Specifically, SDN separates the network into an ``intelligent" control plane and a ``dumb" data plane that implements a standardized interface for the controller to change the network forwarding functions. The control plane, typically a logically centralized controller, stores a global view of network topology information and is responsible for configuring switches in the data plane. Each switch forwards packets based on the instructions sent by the controller using a standard configuration protocol, e.g., OpenFlow~\cite{OpenFlowSpec}. Such a decoupled architecture provides fine-grained network control and a high degree of network programmability. 
+
+Although SDN started as an academic proposal, due to its benefits, it has drawn lots of attention in the industry over the past few years. Many vendors (e.g., Cisco, Barefoot) support OpenFlow on their commercial switches. For example, Pica8~\cite{pica8} is the first hardware-independent switch to support the OpenFlow standard. Moreover, a lot of large companies have leveraged SDN in their core network. Google, for instance, has deployed an SDN-driven WAN to connect its data centers across the planet. This network has been in production for many years and helps the company serve more traffic and save costs~\cite{b4}. AT\&T announced in 2019 that $75\%$ of the traffic traversing their MPLS tunnels is now under the control of SDN, and the number will hit $100\%$ soon~\cite{att}. In conclusion, SDN is promising from the perspective of both industry and academia.
+
+
+Though SDN offers a cost-effective way to configure network devices, an inconsistent network update will result in packet loss or, worse, violations of network policies. For example, due to the varying delays between the controller and switches, switches cannot be updated atomically, which may cause traffic to sidestep intended NFs. This issue becomes even challenging when packets need to traverse a sequence of NFs, and traffic is redistributed among NF instances. The traditional approach to update consistency~\cite{CU}, on which most other update mechanisms~\cite{swan,dionysus,espres,zupdate,incrementalcu,timedcu} build, is atomic in nature --- packets either traverse the old path or the new path, but never both.  Some improvements in this vein focus on
+reducing overheads~\cite{DecentralizedCU,incrementalcu,flip} or congestion~\cite{zupdate,swan}; others focus on finding better update orderings~\cite{espres,tango,dionysus,tsu, gnu, lfupdate, dlb}.  Despite these
+improvements, enforcing atomicity places a fundamental limit on the speed with which the network can be updated by forcing packets (or flows) to wait until the new path is completely updated before it can
+be used. Additionally, this requirement forces rules for both the new and old paths to co-exist, costing efficiency.  Inefficiency is not the only reason why these approaches is not a good fit for NFV. Most prior works on SDN routing-policy updates that ensure packets traverse intended NFs assume that NFs remain at fixed locations of the network during the routing-policy update, and thus they cannot be naively used in scenarios where NFs can move from one position to another. 
+
+
+To ensure complete and correct processing of packets by intended NFs, the controller requires more than a consistent and efficient routing-policy update algorithm. For example, suppose the routing-update algorithm guarantees that all packets traverse the old or new position of each NF by ensuring each packet is sent through either its old or new path in its entirety. In that case, some NF packets may still not be processed if they arrive at the new position before NF migration is completed or if they arrive at the old location after NF migration begins. Therefore, ensuring that all packets get processed by their intended NFs needs additional coordination between migrating NFs to their new locations and adjusting traffic routing policies.  To our knowledge, all works proposed
+to do so (e.g.,~\cite{opennf, split, transfer, swingstate}) coordinate
+these actions by performing network forwarding-state update strictly
+after NF migration is finished.  While these techniques are capable of
+being used with arbitrary route-update protocols, their generality
+slows down the process of flow redistribution longer than necessary,
+possibly delaying rectification of the issue that required the
+routing-policy update in the first place.
+
+
+This dissertation aims at providing solutions to these challenges and contains three components. 
+\begin{itemize}
+\item To achieve efficient network update, in \chapref{chap:scc} we propose an alternative consistent update abstraction in which packets are allowed to traverse a combination of
+both old and new path, thus relaxing the consistency model and speeding up the update
+times.  Our approach is inspired by \textit{causal consistency}~\cite{causal}, a consistency model for shared-memory systems that guarantees that processes (in our case, packets) observe operations (in our case, rules) in a causal order. Applied to SDNs, causal consistency would imply that once a packet is matched to (``reads'') a forwarding rule
+in a switch, it can be matched in downstream switches only to rules
+that are equally or more up-to-date. We propose and analyze a relaxed version of this property called
+\textit{suffix causal consistency} (SCC). We present an algorithm that implements this property
+without updating switches unnecessarily, and show that SCC
+provides greater efficiency than competing consistent-update
+alternatives while offering consistency that is strong enough to
+ensure high-level routing properties (black-hole freedom, bounded
+looping, waypoint enforcement).
+
+\item To ensure correct processing of packets, in \chapref{chap:nimble}, we propose a design called \sysname for interleaving routing-policy update and NF migration using software-defined networking (SDN), in a way that
+significantly reduces the latency to achieve both and without permitting packets to evade processing by NFs.  Our technique works with any route-update protocol that implements a property we call
+\textit{relaxed waypoint correctness}, which includes
+consistent-update protocols like CU~\cite{CU} and our proposed algorithm SCC.
+However, we provide a route-update protocol that is customized to
+achieve relaxed waypoint correctness without conforming to
+conventional ``consistent update'' semantics, as typically defined for
+such protocols. The benefits of \sysname are myriad, including lower latency for completion of both tasks
+and, depending on the routing-update protocol with which NF migration
+is being deployed and the circumstances requiring their update,
+reduced packet loss and/or reduced rule overhead in switches.
+
+\item It is difficult to verify the correctness of our algorithm considering the complex network setting with all possible switch states and varying delays between the controller and switches. In \chapref{chap:modelchecking}, we construct a model using Z3 solver~\cite{Z3Solver} and verify the correctness of both SCC and \sysname. Specifically, we verify the enforcement of suffix causal consistency, as well as other high-level routing properties (black-hole freedom, etc.) for the SCC algorithm by exploring all possible switch configurations and arbitrary latencies for switch updates to occur. Also, we verify the correctness of \sysname by exploring all possible delays between the controller and switches with any route-update protocol satisfying the property of relaxed waypoint correctness. 
+
+\end{itemize}
+
+
+Together, SCC and \sysname support the following thesis statement: \textit{Consistent network-forwarding state update can be achieved efficiently through an appropriate adaptation of causal consistency for the network setting. Interleaving this network-update method and NF migration can significantly speed up the completion of both tasks while ensuring correct processing of traffic.} 
+
+
+%Safe network-function state migration and consistent network-forwarding state update can be achieved efficiently through an appropriate adaptation of causal consistency for the network setting.  This adaptation is strong enough to enforce high-level network properties and can accommodate resource constraints.
+
+
+%Efficient and safe migration of network functions can be achieved by carefully interleaving NF migration and network routing-policy update. Such coordination can provide efficient traffic redistribution with low latency and enforce high-level network properties.}

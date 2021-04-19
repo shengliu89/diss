@@ -1,0 +1,247 @@
+%\NeedsTeXFormat{LaTeX2e}
+%\ProvidesPackage{adpwrapfig}[2013/07/28 ADP's Wrapfig Class]
+
+%Requirements.
+%\RequirePackage{wrapfig,calc,needspace,etoolbox,ifthen}
+
+%Objects in this class.
+
+%Create a boolean switch, for the case when the user specifies
+%the number of lines, and,
+
+\newcommand{\mkr}[1]{{\footnotesize\textcolor{brown}{[MKR: {#1}]}}\xspace}
+\newcommand{\liu}[1]{{\footnotesize\textcolor{green}{[SL: {#1}]}}\xspace}
+\newcommand{\highlight}[1]{{\textcolor{blue}{{#1}}}\xspace}
+
+\newcommand{\sysname}{Nimble\xspace}
+
+% Macros for \ref-ing different types of things
+\newcommand{\chapref}[1]{\mbox{Chapter~\ref{#1}}\xspace}
+\newcommand{\secref}[1]{Sec.~\ref{#1}\xspace}
+\newcommand{\secrefs}[2]{Secs.~\ref{#1}--\ref{#2}\xspace}
+\newcommand{\figref}[1]{Fig.~\ref{#1}\xspace}
+\newcommand{\figrefs}[2]{Figs.~\ref{#1}--\ref{#2}\xspace}
+\newcommand{\tblref}[1]{Table~\ref{#1}\xspace}
+\newcommand{\figrefstatic}[1]{Fig.~{#1}\xspace}
+\newcommand{\lineref}[1]{line~\ref{#1}\xspace}
+\newcommand{\linesref}[2]{lines~\ref{#1}--\ref{#2}\xspace}
+\newcommand{\eqnref}[1]{(\ref{#1})\xspace}
+\newcommand{\eqnrefs}[2]{(\ref{#1})--(\ref{#2})\xspace}
+\newcommand{\pagerefstatic}[1]{p.~{#1}\xspace}
+
+\newcommand{\setSize}[1]{\ensuremath{\left|{#1}\right|}\xspace}
+
+% Units
+\newcommand{\mega}{\ensuremath{\mathrm{M}}\xspace}
+\newcommand{\bytes}{\ensuremath{\mathrm{B}}\xspace}
+\newcommand{\gigabits}{\textrm{Gb}\xspace}
+\newcommand{\kilobytes}{\textrm{KB}\xspace}
+\newcommand{\megabits}{\textrm{Mb}\xspace}
+\newcommand{\megabytes}{\textrm{MB}\xspace}
+\newcommand{\gigabytes}{\textrm{GB}\xspace}
+\newcommand{\terabytes}{\textrm{TB}\xspace}
+\newcommand{\kibibytes}{\textrm{KiB}\xspace}
+\newcommand{\mebibytes}{\textrm{MiB}\xspace}
+\newcommand{\gibibytes}{\textrm{GiB}\xspace}
+\newcommand{\gigahertz}{\textrm{GHz}\xspace}
+\newcommand{\secs}{\textrm{s}\xspace}
+\newcommand{\msecs}{\ensuremath{\mathrm{ms}}\xspace}
+\newcommand{\millisecs}{\textrm{ms}\xspace}
+\newcommand{\microsecs}{\ensuremath{\mu\textrm{s}}\xspace}
+\newcommand{\days}{\textrm{d}\xspace}
+\newcommand{\mins}{\textrm{m}\xspace}
+\newcommand{\hours}{\textrm{h}\xspace}
+
+% Basics
+\newcommand{\nats}[1]{\ensuremath{[{#1}]}\xspace}
+\newcommand{\genericNat}{\ensuremath{w}\xspace}
+\newcommand{\boolFalse}{\ensuremath{\mathit{false}}\xspace}
+\newcommand{\boolTrue}{\ensuremath{\mathit{true}}\xspace}
+\newcommand{\boolIndeterminate}{\ensuremath{\mathit{any}}\xspace}
+
+\newtheorem{prop}{Proposition}
+\newcommand{\propref}[1]{\mbox{Proposition~\ref{#1}}\xspace}
+
+\NewDocumentCommand{\switchID}{ m g }{\ensuremath{\mathit{S}_{#1}\IfNoValueF{#2}{.{#2}}}\xspace}
+\newcommand{\switchIdx}{\ensuremath{j}\xspace}
+\newcommand{\switchIdxAlt}{\ensuremath{j'}\xspace}
+\newcommand{\switchNmbr}{\ensuremath{m}\xspace}
+\newcommand{\coverField}{\ensuremath{\mathsf{cover}}\xspace}
+\newcommand{\switchField}{\ensuremath{\mathsf{switch}}\xspace}
+\newcommand{\priorityField}{\ensuremath{\mathsf{priority}}\xspace}
+\newcommand{\sendToField}{\ensuremath{\mathsf{sendTo}}\xspace}
+\newcommand{\wpField}{\ensuremath{\mathsf{wpCtr}}\xspace}
+\newcommand{\pathmodField}{\ensuremath{\mathsf{epochCtr}}\xspace}
+\newcommand{\rulePriority}[1]{\ensuremath{\mathit{prt}_{#1}}\xspace}
+\newcommand{\ruleSet}{\ensuremath{\mathsf{ruleSet}}\xspace}
+\NewDocumentCommand{\flowAdd}{ g }{\ensuremath{\mathsf{flowadd}\IfNoValueF{#1}{({#1})}}\xspace}
+\NewDocumentCommand{\flowDel}{ g }{\ensuremath{\mathsf{flowdel}\IfNoValueF{#1}{({#1})}}\xspace}
+\NewDocumentCommand{\export}{ g g }{\ensuremath{\mathsf{export}\IfNoValueF{#1}{({#1}, {#2})}}\xspace}
+\NewDocumentCommand{\import}{ g g }{\ensuremath{\mathsf{import}\IfNoValueF{#1}{({#1}, {#2})}}\xspace}
+\NewDocumentCommand{\release}{ g }{\ensuremath{\mathsf{release}\IfNoValueF{#1}{({#1})}}\xspace}
+\NewDocumentCommand{\flowAddNew}{ m g g g g g }{\ensuremath{{#1}.\mathsf{flowadd^{*}}\IfNoValueF{#2}{({#2}, {#3}, {#4})}}\xspace}
+\NewDocumentCommand{\flowModNew}{ m g g g g g }{\ensuremath{{#1}.\mathsf{flowmod^{*}}\IfNoValueF{#2}{({#2}, {#3}, {#4})}}\xspace}
+\NewDocumentCommand{\flowDelNew}{ m g g g g g }{\ensuremath{{#1}.\mathsf{flowdel^{*}}\IfNoValueF{#2}{({#2}, {#3}, {#4})}}\xspace}
+\newcommand{\cmdID}{\ensuremath{c}\xspace}
+
+\NewDocumentCommand{\flowID}{ m g }{\ensuremath{\mathit{f}_{#1}\IfNoValueF{#2}{^{#2}}}\xspace}
+\NewDocumentCommand{\flowIDAlt}{ m }{\ensuremath{\mathit{f}'_{#1}}\xspace}
+\NewDocumentCommand{\flowIDMigrate}{ m g }{\ensuremath{\mathit{f}^{\mathsf{mig}}_{#1}\IfNoValueF{#2}{^{#2}}}\xspace}
+\NewDocumentCommand{\flowIDTunnel}{ m g }{\ensuremath{\mathit{f}^{\mathsf{tun}}_{#1}\IfNoValueF{#2}{^{#2}}}\xspace}
+\NewDocumentCommand{\encapsulate}{ m }{\ensuremath{\mathsf{encap}[{#1}]}\xspace}
+\NewDocumentCommand{\decapsulate}{ }{\ensuremath{\mathsf{decap}}\xspace}
+\newcommand{\wpIdx}{\ensuremath{k}\xspace}
+\newcommand{\wpNmbr}[1]{\ensuremath{n_{#1}}\xspace}
+\newcommand{\wpNmbrMax}{\ensuremath{n_{\mathsf{max}}}\xspace}
+\NewDocumentCommand{\wpFn}{ m g }{\ensuremath{\mathsf{wp}_{#1}\IfNoValueF{#2}{({#2})}}\xspace}
+\newcommand{\flowIdx}{\ensuremath{\mathit{j}}\xspace}
+
+\NewDocumentCommand{\pktID}{ m g }{\ensuremath{\mathit{pkt}_{#1}\IfNoValueF{#2}{.{#2}}}\xspace}
+\NewDocumentCommand{\pktIDAlt}{ m g }{\ensuremath{\mathit{pkt}'_{#1}\IfNoValueF{#2}{.{#2}}}\xspace}
+\NewDocumentCommand{\pktIDAltAlt}{ m g }{\ensuremath{\mathit{pkt}''_{#1}\IfNoValueF{#2}{.{#2}}}\xspace}
+\newcommand{\pktSet}{\ensuremath{P}\xspace}
+\NewDocumentCommand{\ruleID}{ m g }{\ensuremath{R_{#1}\IfNoValueF{#2}{.{#2}}}\xspace}
+\NewDocumentCommand{\ruleIDAlt}{ m g }{\ensuremath{R'_{#1}\IfNoValueF{#2}{.{#2}}}\xspace}
+\NewDocumentCommand{\ruleIDIn}{ m g }{\ensuremath{R^{\mathsf{enc}}_{#1}\IfNoValueF{#2}{.{#2}}}\xspace}
+\NewDocumentCommand{\ruleIDOut}{ m g }{\ensuremath{R^{\mathsf{dec}}_{#1}\IfNoValueF{#2}{.{#2}}}\xspace}
+\NewDocumentCommand{\ruleIDInv}{ m m g }{\ensuremath{R^{\mathsf{inv}}_{{#1},{#2}}\IfNoValueF{#3}{.{#3}}}\xspace}
+
+\newcommand{\tagTmpLB}[1]{\ensuremath{L({#1})}\xspace}
+\newcommand{\rules}{\ensuremath{\mathcal{R}}\xspace}
+\newcommand{\updateIdx}{\ensuremath{\mathit{r}}\xspace}
+\newcommand{\updateIdxAlt}{\ensuremath{\updateIdx'}\xspace}
+\newcommand{\oldRules}{\ensuremath{\rules^{\mathsf{old}}}\xspace}
+\newcommand{\newRules}{\ensuremath{\rules^{\mathsf{new}}}\xspace}
+\NewDocumentCommand{\nfSeqID}{ m g }{\ensuremath{\mathit{seq}_{#1}\IfNoValueF{#2}{^{#2}}}\xspace}
+
+\newcommand{\ruleMatchNew}[2]{\ensuremath{\mathit{matchRule}({#1},{#2})}\xspace}
+\newcommand{\ruleIdx}{\ensuremath{j}\xspace}
+\newcommand{\ruleIdxAlt}{\ensuremath{j'}\xspace}
+\newcommand{\pktMatch}[1]{\ensuremath{\mathit{pMatch}_{#1}}\xspace}
+\newcommand{\relevantSwitch}{\ensuremath{\mathsf{F}}\xspace}
+
+\newcommand{\updateSteps}{\ensuremath{\mathit{\ell}}\xspace}
+\newcommand{\updateStepsAlt}{\ensuremath{\mathit{\ell'}}\xspace}
+\NewDocumentCommand{\pathID}{ m g }{\ensuremath{\mathit{path}_{#1}\IfNoValueF{#2}{^{#2}}}\xspace}
+\newcommand{\updateID}[1]{\ensuremath{\mathit{U}_{#1}}\xspace}
+\newcommand{\indexID}[1]{\ensuremath{\mathit{id}_{#1}}\xspace}
+\newcommand{\oldIndexID}[1]{\ensuremath{\mathit{id}_{#1}}\xspace}
+\newcommand{\newIndexID}[1]{\ensuremath{\mathit{id}^{\mathsf{new}}_{#1}}\xspace}
+
+\NewDocumentCommand{\nfID}{ g g g }{\ensuremath{\mathit{NF}_{#1}\IfNoValueF{#2}{^{#2}}\IfNoValueF{#3}{.{#3}}}\xspace}
+\newcommand{\nfNmbr}{\ensuremath{n}\xspace}
+\newcommand{\nfIdx}{\ensuremath{i}\xspace}
+\newcommand{\nfIdxAlt}{\ensuremath{i'}\xspace}
+\newcommand{\nfIdxAltAlt}{\ensuremath{j}\xspace}
+\newcommand{\nfIdxAltAltAlt}{\ensuremath{j'}\xspace}
+\newcommand{\nfInstIdx}{\ensuremath{j}\xspace}
+\newcommand{\nfInstIdxAlt}{\ensuremath{j'}\xspace}
+\newcommand{\nfState}{\ensuremath{\mathit{state}}\xspace}
+\NewDocumentCommand{\nfInstanceID}{ m g }{\ensuremath{\mathit{I}_{#1}\IfNoValueF{#2}{.{#2}}}\xspace}
+
+
+\NewDocumentCommand{\oldSwitchID}{ m g }{\ensuremath{\mathit{S}^{\mathsf{old}}_{{#1}}\IfNoValueF{#2}{.{#2}}}\xspace}
+\NewDocumentCommand{\newSwitchID}{ m g }{\ensuremath{\mathit{S}^{\mathsf{new}}_{{#1}}\IfNoValueF{#2}{.{#2}}}\xspace}
+
+
+\newcommand{\flowSpace}{\ensuremath{\mathbb{F}}\xspace}
+\newcommand{\subFlowSpace}{\ensuremath{\mathbb{F^{*}}}\xspace}
+\NewDocumentCommand{\processPkt}{ g }{\ensuremath{\mathsf{processPkt}\IfNoValueF{#1}{({#1})}}\xspace}
+\newcommand{\flowSpec}{\ensuremath{\mathsf{flowSpec}}\xspace}
+
+
+\newcommand{\switchesSet}{\ensuremath{\mathbb{S}}\xspace}
+\newcommand{\oldSwitchesSet}{\ensuremath{\mathbb{S}^{\mathsf{old}}}\xspace}
+\newcommand{\newSwitchesSet}{\ensuremath{\mathbb{S}^{\mathsf{new}}}\xspace}
+\newcommand{\switchesWLinkSwapSet}{\ensuremath{\mathbb{S}^{\pm}}\xspace}
+\newcommand{\switchUpdateInd}[2]{\ensuremath{x^{#1}_{#2}}\xspace}
+\newcommand{\linkActiveInd}[3]{\ensuremath{y^{#1}_{{#2},{#3}}}\xspace}
+%\newcommand{\oldPath}[1]{\ensuremath{\mathbb{P}^{\mathsf{old}}}\xspace}
+%\newcommand{\newPath}[1]{\ensuremath{\mathbb{P}^{\mathsf{new}}}\xspace}
+\newcommand{\oldPath}[1]{\ensuremath{\mathit{path}^{\mathsf{old}}_{#1}}\xspace}
+\newcommand{\newPath}[1]{\ensuremath{\mathit{path}^{\mathsf{new}}_{#1}}\xspace}
+\newcommand{\disableLinksSet}{\ensuremath{\mathbb{L}^{-}}\xspace}
+\newcommand{\enableLinksSet}{\ensuremath{\mathbb{L}^{+}}\xspace}
+\newcommand{\todoNF}[3]{\ensuremath{z^{{#1},{#2}}_{#3}}\xspace}
+\newcommand{\inSwitch}[1]{\ensuremath{\mathit{in}({#1})}\xspace}
+\newcommand{\outSwitch}[1]{\ensuremath{\mathit{out}}({#1})\xspace}
+
+\newcommand{\ourRouteUpdateName}{RWC\xspace}
+\newcommand{\ourRouteUpdateNameLong}{``\underline{r}elaxed \underline{w}aypoint \underline{c}orrectness''\xspace}
+\newcommand{\portsPerSwitch}{\ensuremath{K}\xspace}
+
+\newcommand{\delayBase}{\ensuremath{db}\xspace}
+\newcommand{\oneHopDelay}{\ensuremath{dh}\xspace}
+\newcommand{\hopNumber}{\ensuremath{h}\xspace}
+
+
+
+\newcommand{\flowTableRule}[1]{\ensuremath{\mathit{FT}_{#1}}\xspace}
+\newcommand{\globalID}[1]{\ensuremath{\mathit{gid}_{#1}}\xspace}
+\newcommand{\epochField}{\ensuremath{\mathsf{epochCtr}}\xspace}
+\newcommand{\ruleCounter}{\ensuremath{\mathit{ct}}\xspace}
+\newcommand{\action}[1]{\ensuremath{\mathit{act}_{#1}}\xspace}
+\newcommand{\tagTmpField}{\ensuremath{\mathsf{tstamp}}\xspace}
+\newcommand{\tagTMPNew}[1]{\ensuremath{\mathit{TTS}^{\mathsf{new}}_{#1}}\xspace}
+\newcommand{\tagTMPOld}[1]{\ensuremath{\mathit{TTS}^{\mathsf{old}}_{#1}}\xspace}
+\newcommand{\ruleTMP}[1]{\ensuremath{\mathit{RTS}_{#1}}\xspace}
+\newcommand{\ruleTMPNew}[1]{\ensuremath{\mathit{RTS}^{\mathsf{new}}_{#1}}\xspace}
+\newcommand{\ruleTMPOld}[1]{\ensuremath{\mathit{RTS}^{\mathsf{old}}_{#1}}\xspace}
+\newcommand{\flowCommand}{\ensuremath{\mathit{cmd}}\xspace}
+\NewDocumentCommand{\flowMod}{ g }{\ensuremath{\mathsf{flowmod}\IfNoValueF{#1}{({#1})}}\xspace}
+
+\newcommand{\newFlowCMD}{\ensuremath{\mathit{ncmd}}\xspace}
+\newcommand{\newFlowID}{\ensuremath{\mathit{nc}}\xspace}
+\newcommand{\commandFlag}{\ensuremath{\mathit{flag}}\xspace}
+\newcommand{\pktTmpField}{\ensuremath{\mathsf{tstamp}}\xspace}
+\newcommand{\nodeID}[1]{\ensuremath{V_{#1}}\xspace}
+\newcommand{\edgeID}[2]{\ensuremath{E_{#1#2}}\xspace}
+\newcommand{\pktCounter}{\ensuremath{n_{pkt}}\xspace}
+\newcommand{\dataVersion}[1]{\ensuremath{\mathit{ver}_{#1}\xspace}}
+\newcommand{\dataDeps}[1]{\ensuremath{\mathit{deps}_{#1}\xspace}}
+\newcommand{\dataKey}[1]{\ensuremath{\mathit{key}_{#1}\xspace}}
+\newcommand{\userID}[1]{\ensuremath{\mathit{uid}_{#1}}\xspace}
+\newcommand{\appContext}[1]{\ensuremath{\mathit{app\_cxt}_{#1}}\xspace}
+\newcommand{\pktContext}[1]{\ensuremath{\mathit{pkt\_cxt}_{#1}}\xspace}
+
+
+\newcommand{\addRules}{\ensuremath{\rules^{\mathsf{add}}}\xspace}
+\newcommand{\keepRules}{\ensuremath{\rules^{\mathsf{keep}}}\xspace}
+\newcommand{\deleteRules}{\ensuremath{\rules^{\mathsf{del}}}\xspace}
+\newcommand{\oldClasses}{\ensuremath{c^{\mathsf{old}}}\xspace}
+\newcommand{\newClasses}{\ensuremath{c^{\mathsf{new}}}\xspace}
+\newcommand{\ruleMatch}[3]{\ensuremath{\mathit{match}({#1}},
+  \ensuremath{#2}, \ensuremath{{#3})}\xspace}
+\newcommand{\waypointID}[1]{\ensuremath{w_{#1}}\xspace}
+\newcommand{\ruleAddSet}[1]{\ensuremath{\mathit{rAddSet}_{#1}}\xspace}
+\newcommand{\pktAddSet}[1]{\ensuremath{\mathit{pAddSet}_{#1}}\xspace}
+\newcommand{\sendBackSet}[1]{\ensuremath{\mathit{SbSet}_{#1}}\xspace}
+\newcommand{\forward}{\ensuremath{N}\xspace}
+\newcommand{\forwardOld}{\ensuremath{N^{\mathsf{old}}}\xspace}
+\newcommand{\forwardNew}{\ensuremath{N^{\mathsf{new}}}\xspace}
+\newcommand{\upstream}{\ensuremath{U}\xspace}
+\newcommand{\upstreamOld}{\ensuremath{U^{\mathsf{old}}}\xspace}
+\newcommand{\upstreamNew}{\ensuremath{U^{\mathsf{new}}}\xspace}
+\newcommand{\sendBack}{\ensuremath{\mathit{SendBack}}\xspace}
+\newcommand{\sendBackAction}{\ensuremath{\mathit{back}}\xspace}
+\newcommand{\configuration}[1]{\ensuremath{C_{#1}}\xspace}
+\newcommand{\sidUniverse}{\ensuremath{S}\xspace}
+\newcommand{\pktUniverse}{\ensuremath{P}\xspace}
+\newcommand{\clock}[1]{\ensuremath{\mathit{clk}_{#1}}\xspace}
+\newcommand{\sendBackPath}[1]{\ensuremath{\mathit{backPath}_{#1}}\xspace}
+\newcommand{\previousSwitch}{\ensuremath{\mathit{prev}}\xspace}
+\newcommand{\nextSwitch}{\ensuremath{\mathit{next}}\xspace}
+\newcommand{\destination}[1]{\ensuremath{\mathit{dst}_{#1}}\xspace}
+\newcommand{\dropAction}{\ensuremath{\mathit{drop}}\xspace}
+\newcommand{\segmentID}[1]{\ensuremath{\mathit{seg}_{#1}}\xspace}
+\newcommand{\segmentOldID}[1]{\ensuremath{\mathit{seg}^{\mathsf{old}}_{#1}}\xspace}
+\newcommand{\segmentNewID}[1]{\ensuremath{\mathit{seg}^{\mathsf{new}}_{#1}}\xspace}
+\newcommand{\pktHeaderBit}[1]{\ensuremath{\mathit{pBit}_{#1}}\xspace}
+\newcommand{\pktTrace}[1]{\ensuremath{\mathit{Trace}_{#1}}\xspace}
+\newcommand{\epochIdx}{\ensuremath{\mathit{epochCtr}}\xspace}
+\newcommand{\linkLatency}{\ensuremath{\mathit{linkLatency}}\xspace}
+\newcommand{\netDiameter}{\ensuremath{\mathit{diameter}}\xspace}
+\newcommand{\portID}[1]{\ensuremath{\mathit{p}_{#1}}\xspace}
+
+\newcommand{\oldPathNB}{\ensuremath{\mathbb{P}^{\mathsf{old}}}\xspace}
+\newcommand{\newPathNB}{\ensuremath{\mathbb{P}^{\mathsf{new}}}\xspace}
